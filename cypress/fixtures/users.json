@@ -1,0 +1,14 @@
+{
+  "users": [
+    {
+      "email": "os@bushwoodcountryclub.com",
+      "password": "WhooshGolf2021!",
+      "type": "staff"
+    },
+    {
+      "email": "dog@bushwoodcountryclub.com",
+      "password": "WhooshGolf2021!",
+      "type": "admin"
+    }
+  ]
+}

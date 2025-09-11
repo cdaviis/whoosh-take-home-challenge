@@ -1,0 +1,23 @@
+{
+  "name": "whoosh-take-home-challenge",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/cdaviis/whoosh-take-home-challenge#readme",
+  "bugs": {
+    "url": "https://github.com/cdaviis/whoosh-take-home-challenge/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cdaviis/whoosh-take-home-challenge.git"
+  },
+  "license": "MIT",
+  "author": "Chris Davis",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "cypress": "^15.1.0"
+  }
+}
