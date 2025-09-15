@@ -1,29 +1,20 @@
 class LoginPage {
-  selectors = {
-    emailField: '[name="email"]',
-    passwordField: '[name="password"]',
-    loginButton: '.ui__StyledButton-sc-1s61alp-0'
+  emailField() {
+    return cy.get('[name="email"]')
   }
   
-  typeEmail(email) {
-    cy.get(this.selectors.emailField).type(email)
-    return this
+  passwordField() {
+    return cy.get('[name="password"]')
   }
   
-  typePassword(password) {
-    cy.get(this.selectors.passwordField).type(password)
-    return this
-  }
-  
-  clickLoginButton() {
-    cy.get(this.selectors.loginButton).click()
-    return this
+  loginButton() {
+    return cy.get('.ui__StyledButton-sc-1s61alp-0')
   }
   
   userLogin(email, password) {
-    this.typeEmail(email)
-    this.typePassword(password)
-    this.clickLoginButton()
+    this.emailField().type(email)
+    this.passwordField().type(password)
+    this.loginButton().click()
     return this
   }
 }

@@ -1,18 +1,14 @@
 import LoginPage from '../support/pages/auth/loginPage'
-import GolfEventsPage from '../support/pages/golf/eventsPage'
-import EventTagsSettingsPage from '../support/pages/admin/eventTagsSettingsPage'
-import SidePanel from '../support/pages/components/sidePanel'
-import { generateUniqueTagName } from '../support/utils/tagUtils'
+import AdminSidePanel from '../support/pages/components/adminSidePanel'
+import EventsPage from '../support/pages/eventsPage'
 import { generateUniqueTimestamp } from '../support/utils/timeUtils'
 
 const loginPage = new LoginPage()
-const golfEventsPage = new GolfEventsPage()
-const eventTagsSettingsPage = new EventTagsSettingsPage()
-const sidePanel = new SidePanel()
+const adminSidePanel = new AdminSidePanel()
+const eventsPage = new EventsPage()
 
 describe('Event Tags — Smoke Test', () => {
-  let staffUser
-  let adminUser
+  let staffUser, adminUser, tag1, tag2, event1Name, event2Name
   
   before(() => {
     cy.fixture('users.json').then((userData) => {
@@ -20,88 +16,73 @@ describe('Event Tags — Smoke Test', () => {
       adminUser = userData.users.find(user => user.type === 'admin')
     })
   })
-
-  const uniqueTag = generateUniqueTagName('AutoTag')
-  const eventTitle = `AutoEvent_${generateUniqueTimestamp()}`
-  let secondEventTitle
-
+  
   beforeEach(() => {
+    tag1 = `AutoTag_${generateUniqueTimestamp()}`
+    tag2 = `AutoTag_${generateUniqueTimestamp()}`
+    event1Name = `AutoEvent_${generateUniqueTimestamp()}`
+    event2Name = `AutoEvent_${generateUniqueTimestamp()}`
+    
     cy.visit('/login')
     loginPage.userLogin(staffUser.email, staffUser.password)
-    sidePanel.waitForNavigation()
-  })
-
-  afterEach(() => {
-    cy.cleanupEvents()
-    cy.cleanupTags()
+    adminSidePanel.eventsIcon().should('be.visible')
   })
   
-  it('TC-001: Staff user creates an event with a new tag', () => {
-    sidePanel.clickEventsIcon()
-    const firstEventName = golfEventsPage.createEvent({
-      name: eventTitle,
-      description: 'Test event description',
-      date: '2025-10-01',
-      location: 'Test Location',
-      tags: [uniqueTag]
-    })
-
-    golfEventsPage.openEvent(firstEventName)
-    golfEventsPage.eventInfo.verifyTagExists(uniqueTag)
-    golfEventsPage.eventInfo.closeEventInfo()
-    secondEventTitle = `Second_${generateUniqueTimestamp()}`
-    const secondEventName = golfEventsPage.createEvent({
-      name: secondEventTitle,
-      description: 'Second event description',
-      date: '2025-10-02',
-      location: 'Test Location',
-      tags: [uniqueTag]
-    })
-    
-    golfEventsPage.openEvent(secondEventName)
-    golfEventsPage.eventInfo.verifyTagExists(uniqueTag)
-    golfEventsPage.eventInfo.closeEventInfo()
-    
+  afterEach(() => {
     cy.visit('/logout')
-    loginPage.userLogin(adminUser.email, adminUser.password)
-    sidePanel.waitForNavigation()
-    eventTagsSettingsPage.navigateToEventTagsSettings()
-    eventTagsSettingsPage.verifyTagExists(uniqueTag)
-    eventTagsSettingsPage.verifyTagUsageCount(uniqueTag, 2)
+
+    // TODO: Commenting out as this is not implemented yet
+    // cy.cleanupEvents()
+    // cy.cleanupTags()
   })
+  
+  it('TC-001: Smoke Test - Staff user adds tags to events, filters events by tag and admin verifies tag exists on admin settings page', () => {
+    const tag3 = `AutoTag_${generateUniqueTimestamp()}`
+    
+    cy.visit('/app/golf/events')
 
-  xit('TC-002: Staff user filters events by a single tag and sees only matching events', () => {
-    sidePanel.clickEventsIcon()
-    golfEventsPage.navigateToEventsPage()
-    golfEventsPage.filterByTag(uniqueTag)
-    golfEventsPage.verifyEventVisible(eventTitle)
-    golfEventsPage.verifyEventVisible(secondEventTitle)
+    // Create first event with tag1
+    eventsPage.createEventButton().click()
+    eventsPage.fillEventDescriptionDetails(event1Name, [tag1])
+    
+    // Verify tag1 exists on event details page
+    eventsPage.openEvent(event1Name)
+    eventsPage.selectTab('Details')
+    cy.contains(tag1).should('be.visible')
 
-    const differentTag = generateUniqueTagName('DifferentTag')
-    const differentEventName = golfEventsPage.createEvent({
-      name: `Different_${generateUniqueTimestamp()}`,
-      description: 'Event with different tag',
-      date: '2025-10-03',
-      location: 'Test Location',
-      tags: [differentTag]
-    })
+    // Add tag2 to first event
+    eventsPage.addTagsOnExistinEvent([tag2])
+    eventsPage.saveButton().click({force: true}).wait(2000)
+    eventsPage.closeEventDetails()
 
-    golfEventsPage.filterByTag(uniqueTag)
-    golfEventsPage.verifyEventVisible(eventTitle)
-    golfEventsPage.verifyEventVisible(secondEventTitle)
-    golfEventsPage.verifyEventNotVisible(differentEventName)
-    golfEventsPage.clearFilters()
-    golfEventsPage.verifyEventVisible(eventTitle)
-    golfEventsPage.verifyEventVisible(secondEventTitle)
-    golfEventsPage.verifyEventVisible(differentEventName)
+    // Create second event with tag3
+    eventsPage.createEventButton().click()
+    eventsPage.fillEventDescriptionDetails(event2Name, [tag3], '7:00 AM')
 
+    // Open the second event
+    eventsPage.openEvent(event2Name)
+    eventsPage.selectTab('Details')
+    cy.contains(tag3).should('be.visible')
+    eventsPage.closeEventDetails()
+
+    // Filter events by tag3
+    eventsPage.filterByEventTags([tag3])
+    cy.contains(event2Name).should('be.visible')
+    cy.contains(event1Name).should('not.exist')
+    
     cy.visit('/logout')
     
+    // Login as admin user
     loginPage.userLogin(adminUser.email, adminUser.password)
-    sidePanel.waitForNavigation()
+    adminSidePanel.eventsIcon().should('be.visible')
 
-    eventTagsSettingsPage.navigateToEventTagsSettings()
-    eventTagsSettingsPage.verifyTagExists(uniqueTag)
-    eventTagsSettingsPage.verifyTagExists(differentTag)
+    // Navigate to event tags settings page
+    cy.visit('/app/admin/settings')
+    adminSidePanel.eventTagsSettings().click()
+    
+    // Verify all tags exist
+    cy.contains(tag1).should('be.visible')
+    cy.contains(tag2).should('be.visible')
+    cy.contains(tag3).should('be.visible')
   })
 })

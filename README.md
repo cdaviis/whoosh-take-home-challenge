@@ -1,6 +1,7 @@
 # Whoosh Take Home Challenge
 
-> *Note: This repo was built quickly for the take-home. The framework scaffolding is in place, and I’m currently adding/polishing test cases (starting with TC-001). The intent was to show my approach to automation rather than a fully complete suite.*
+> *Note: This repo was built as a mock for a take-home challenge. The framework scaffolding is in place, and I’m currently adding/polishing test cases (starting with TC-001). 
+The intent was to show my approach to automation and not a fully complete suite.*
 
 ## Getting Started
 
